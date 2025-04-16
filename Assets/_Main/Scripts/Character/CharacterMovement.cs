@@ -1,28 +1,38 @@
 ﻿using System;
+using _Main.Scripts._Tools.DebugManager;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 
 namespace _Main.Scripts.Character
 {
     [RequireComponent(typeof(Rigidbody2D))]
     public class CharacterMovement : MonoBehaviour
     {
-        [Header("Horizontal Movement")]
+        [Header("Movement Values")]
         [Range(1, 10)]
         [SerializeField] private float hAcceleration = 5;
+        [Range(0.1f,1)]
+        [SerializeField] private float hAccelerationMultiplierInAir = 1;
         [Range(1, 10)]
         [SerializeField] private float maxHSpeed = 5;
-        [Range(1, 5)]
-        [SerializeField] private float maxDrag = 5;
-        [Range(0, 2)]
-        [SerializeField] private float minDrag = 5;
-        [Header("Vertical Movement")]
         [Range(1, 30)]
         [SerializeField] private float jumpForce = 10;
+        [Range(0,0.5f)]
+        [SerializeField] private float checkForMaxHeightDelay = 0.5f;
+        [Header("Drag Values")]
+        [Range(1, 5)]
+        [SerializeField] private float groundMaxDrag = 5;
+        [Range(0, 2)]
+        [SerializeField] private float groundMinDrag = 5;
+        [Range(0,10)]
+        [SerializeField] private float airDrag = 5;
+        [Header("Ground Check")]
+        [SerializeField] private Transform groundCheck;
         [SerializeField] private LayerMask landLayer;
         [Range(0, 0.1f)] 
         [SerializeField] private float checkDistance = 0.01f;
-        [SerializeField] private Transform groundCheck;
+        
         
         private const int SpeedMultiplier = 5;
         private Rigidbody2D _rigidbody;
@@ -35,8 +45,8 @@ namespace _Main.Scripts.Character
         private float _horizontalVelocity;
         
         public Vector2 Velocity => _rigidbody.velocity;
-
-        
+        public bool IsInAir => _isInAir;
+        public float BodyDrag => _rigidbody.drag;
         private enum FacingDirectionEnum
         {
             None,
@@ -70,7 +80,13 @@ namespace _Main.Scripts.Character
                 _jumpTimer -= Time.deltaTime;
                 if (_jumpTimer <= 0)
                 {
-                    _hasJumped = false;
+                    Debug.Log("Jump Timer Finished");
+                    
+                    if (Mathf.Abs(_verticalVelocity) < 0.1f)
+                    {
+                        _hasJumped = false;
+                        _rigidbody.drag = airDrag;
+                    }
                 }
             }
         }
@@ -90,6 +106,8 @@ namespace _Main.Scripts.Character
                 {
                     verVelocity = jumpForce;
                 }
+                
+                Debug.Log("Vertical Speed Clamped");
             }
 
             _rigidbody.velocity = new Vector2(_horizontalVelocity, verVelocity);
@@ -103,12 +121,12 @@ namespace _Main.Scripts.Character
             {
                 if (Math.Abs(direction) < 0.1f)
                 {
-                    _rigidbody.drag = maxDrag;
+                    _rigidbody.drag = groundMaxDrag;
                     _wasMoving = false;
                 }
                 else if(_wasMoving == false)
                 {
-                    _rigidbody.drag = minDrag;
+                    _rigidbody.drag = groundMinDrag;
                     _wasMoving = true;
                 }
             }
@@ -132,8 +150,10 @@ namespace _Main.Scripts.Character
                 _facingDirection = currentFacing;
             }
             
+
             //Setup Acceleration
-            var fixedSpeed = (hAcceleration * SpeedMultiplier);
+            var accelerationMultiplier = _isInAir ? hAccelerationMultiplierInAir : 1;
+            var fixedSpeed = (hAcceleration * SpeedMultiplier) * accelerationMultiplier;
             var fixedDirection = (direction * fixedSpeed) * Time.fixedDeltaTime;
             var newDirection = (_rigidbody.velocity.x + fixedDirection);
             
@@ -150,38 +170,33 @@ namespace _Main.Scripts.Character
         {
             if (_isInAir == false)
             {
-                _rigidbody.AddForce(new Vector2(_rigidbody.velocity.x, jumpForce), ForceMode2D.Impulse);
-            
                 _hasJumped = true;
-                _jumpTimer = 0.5f;
-                SetAirValues();
+                _isInAir = true;
+                _jumpTimer = checkForMaxHeightDelay;
+                _rigidbody.drag = groundMaxDrag;
+                
+                _rigidbody.AddForce(new Vector2(_rigidbody.velocity.x, jumpForce), ForceMode2D.Impulse);
             }
         }
-
-        private void SetAirValues()
-        {
-            _isInAir = true;
-            _rigidbody.drag = 4;
-        }
-
+        
         private void CheckForLanding()
         {
              var rayHit = Physics2D.Raycast(groundCheck.position, Vector2.down, checkDistance, landLayer);
              if (rayHit)
              {
                  _isInAir = false;
-                 _rigidbody.drag = minDrag;
-                 Debug.Log("Landed");
+                 _rigidbody.drag = groundMinDrag;
              }
              else
              {
-                 SetAirValues();
+                 _isInAir = true;
+                 _rigidbody.drag = airDrag;
              }
         }
 
         private void OnCollisionEnter2D(Collision2D other)
         {
-            if (_isInAir)
+            if (_isInAir && _hasJumped == false)
             {
                 CheckForLanding(); 
             }
@@ -189,7 +204,7 @@ namespace _Main.Scripts.Character
 
         private void OnCollisionStay2D(Collision2D other)
         {
-            if (_isInAir)
+            if (_isInAir && _hasJumped == false)
             {
                 CheckForLanding(); 
             }

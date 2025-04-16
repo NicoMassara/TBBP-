@@ -1,5 +1,5 @@
-﻿
-using System;
+﻿using System;
+using _Main.Scripts._Tools.DebugManager;
 using UnityEngine;
 
 namespace _Main.Scripts.Character
@@ -18,6 +18,7 @@ namespace _Main.Scripts.Character
         private void Start()
         {
             _movement.OnFacingChanged += Movement_OnFacingChangeHandler;
+
         }
         public void MoveRight(float direction)
         {
@@ -29,13 +30,27 @@ namespace _Main.Scripts.Character
             _movement.DoJump();
         }
         
-        
         private void Movement_OnFacingChangeHandler(bool isFacingRight)
         {
             if (spriteRenderer != null)
             {
                 spriteRenderer.flipX = !isFacingRight;
             }
+        }
+
+        private void OnEnable()
+        {
+            DebugManager.Instance.AddDebug(DebugKeys.Player.Velocity,
+                "Player Velocity", () => _movement.Velocity.ToString());
+            DebugManager.Instance.AddDebug(DebugKeys.Player.InAir,
+                "In Air", () => _movement.IsInAir.ToString());
+            DebugManager.Instance.AddDebug(DebugKeys.Player.Drag, "Drag", () => _movement.BodyDrag.ToString());
+        }
+
+        private void OnDisable()
+        {
+            DebugManager.Instance.RemoveDebug(DebugKeys.Player.Velocity);
+            DebugManager.Instance.RemoveDebug(DebugKeys.Player.InAir);
         }
     }
 }
