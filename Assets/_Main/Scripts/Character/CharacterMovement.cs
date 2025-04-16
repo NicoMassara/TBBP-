@@ -30,9 +30,8 @@ namespace _Main.Scripts.Character
         [Header("Ground Check")]
         [SerializeField] private Transform groundCheck;
         [SerializeField] private LayerMask landLayer;
-        [Range(0, 0.1f)] 
-        [SerializeField] private float checkDistance = 0.01f;
-        
+        [Range(0, 0.05f)] 
+        [SerializeField] private float groundCheckDistance = 0.025f;
         
         private const int SpeedMultiplier = 5;
         private Rigidbody2D _rigidbody;
@@ -80,8 +79,6 @@ namespace _Main.Scripts.Character
                 _jumpTimer -= Time.deltaTime;
                 if (_jumpTimer <= 0)
                 {
-                    Debug.Log("Jump Timer Finished");
-                    
                     if (Mathf.Abs(_verticalVelocity) < 0.1f)
                     {
                         _hasJumped = false;
@@ -181,7 +178,7 @@ namespace _Main.Scripts.Character
         
         private void CheckForLanding()
         {
-             var rayHit = Physics2D.Raycast(groundCheck.position, Vector2.down, checkDistance, landLayer);
+             var rayHit = Physics2D.Raycast(groundCheck.position, Vector2.down, groundCheckDistance, landLayer);
              if (rayHit)
              {
                  _isInAir = false;
