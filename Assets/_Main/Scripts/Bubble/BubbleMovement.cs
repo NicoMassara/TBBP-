@@ -10,23 +10,23 @@ namespace _Main.Scripts.Bubble
     {
         [Header("Speed Values")] 
         [Range(1, 10)] 
-        [SerializeField] private float verticalSpeed = 1;
+        [SerializeField] private float verticalSpeed = 5;
         [Range(1, 50)] 
-        [SerializeField] private float horizontalSpeed = 10;
+        [SerializeField] private float horizontalSpeed = 15;
         [Space(10)]
         [Header("Errant Vertical Movement")] 
-        [Range(0,10)]
-        [SerializeField] private float maxErrantMovement = 1;
-        [Range(0,10)]
-        [SerializeField] private float errantSpeed = 1;
-        [Range(0,10)]
-        [SerializeField] private float errantMovementVariation = 1;
+        [Range(0,5)]
+        [SerializeField] private float maxErrantMovement = 1f;
+        [Range(0,5)]
+        [SerializeField] private float errantSpeed = 1.5f;
+        [Range(0,2)]
+        [SerializeField] private float errantMovementVariation = 1.25f;
         [Header("Distance Values")]
         [Space] 
         [Range(0, 10)]
         [SerializeField] private float distanceToChangeDirection = 5;
         [Range(0,2)]
-        [SerializeField] private float distanceNeededVariation = 1;
+        [SerializeField] private float distanceNeededVariation = 1.5f;
         
         
         private BubbleMovementTypeEnum _bubbleMovementType;
@@ -35,6 +35,7 @@ namespace _Main.Scripts.Bubble
         private bool _hasChangedDirection = false;
         private float _distanceNeededToChangeDirection;
         private float _errantMovement;
+        private float _errantAngle;
         
         public UnityAction OnDirectionChange;
         
@@ -52,16 +53,10 @@ namespace _Main.Scripts.Bubble
             
             var position = transform.position;
             var finalSpeed = _direction * Time.deltaTime;
-
+            
             if (_hasChangedDirection)
             {
-                float min = -_errantMovement;
-                float max = _errantMovement;
-                float midpoint = (min + max) / 2f;
-                float amplitude = (max - min) / 2f;
-                float oscillatingValue = midpoint + 
-                                         Mathf.Sin(Time.time * errantSpeed) * amplitude;
-                position.x += oscillatingValue;
+                position.x += CalculateErraticMovement();
             }
 
             transform.position = position + (Vector3)finalSpeed;
@@ -72,6 +67,24 @@ namespace _Main.Scripts.Bubble
             {
                 ChangeDirection();
             }
+        }
+
+        private float CalculateErraticMovement()
+        {
+            _errantAngle += Time.deltaTime * errantSpeed * Mathf.PI * 2f; // Full sine wave cycle
+            
+            if (_errantAngle > Mathf.PI * 2f)
+            {
+                _errantAngle -= Mathf.PI * 2f; 
+            }
+                
+            float min = -_errantMovement;
+            float max = _errantMovement;
+            float midpoint = (min + max) / 2f;
+            float amplitude = (max - min) / 2f;
+            float oscillatingValue = midpoint + Mathf.Sin(_errantAngle) * amplitude;
+            
+            return oscillatingValue;
         }
 
         private float CalculateCurrentDistanceFromOrigin()
@@ -96,12 +109,8 @@ namespace _Main.Scripts.Bubble
             var variation  = Random.Range(-errantMovementVariation, errantMovementVariation)/2;
 
             _errantMovement = (maxErrantMovement + variation) / 2000;
-            
-            // Flip Direction
-            if (Random.Range(0, 1) >= 0.5f)
-            {
-                _errantMovement *= -1;
-            }
+
+            _errantAngle = 0;
         }
 
         public void EndMovement()

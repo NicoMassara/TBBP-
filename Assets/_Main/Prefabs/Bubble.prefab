@@ -63,8 +63,8 @@ MonoBehaviour:
   verticalSpeed: 5
   horizontalSpeed: 15
   maxErrantMovement: 1
-  errantSpeed: 7.5
-  errantMovementVariation: 1
+  errantSpeed: 1.5
+  errantMovementVariation: 1.25
   distanceToChangeDirection: 5
   distanceNeededVariation: 1
 --- !u!114 &1580008423119569451
