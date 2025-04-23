@@ -41,3 +41,18 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: LevelStructure
+    uniqueID: 2192550999
+    locked: 0
+  - name: NPC
+    uniqueID: 899127821
+    locked: 0
+  - name: Character
+    uniqueID: 2867637881
+    locked: 0
+  - name: Item
+    uniqueID: 2936738179
+    locked: 0
+  - name: Bubble
+    uniqueID: 2079068267
+    locked: 0

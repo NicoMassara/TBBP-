@@ -32,7 +32,7 @@ namespace _Main.Scripts.Character
 
         private void IA_Movement_Bubble_PerformedHandler(InputAction.CallbackContext obj)
         {
-            
+            _motor.DoShootBubble();
         }
         
         private void IA_Movement_Jump_PerformedHandler(InputAction.CallbackContext obj)

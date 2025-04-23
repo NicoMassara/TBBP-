@@ -1,23 +1,29 @@
 ﻿using System;
 using _Main.Scripts._Tools.DebugManager;
+using _Main.Scripts.Bubble;
 using UnityEngine;
 
 namespace _Main.Scripts.Character
 {
     [RequireComponent(typeof(CharacterMovement))]
+    [RequireComponent(typeof(BubbleShooter))]
     public class CharacterMotor : MonoBehaviour
     {
-        private CharacterMovement _movement;
         [SerializeField] private SpriteRenderer spriteRenderer;
+        private CharacterMovement _movement;
+        private BubbleShooter _bubbleShooter;
+        private bool _isFacingRight;
 
         private void Awake()
         {
             _movement = GetComponent<CharacterMovement>();
+            _bubbleShooter = GetComponent<BubbleShooter>();
         }
 
         private void Start()
         {
             _movement.OnFacingChanged += Movement_OnFacingChangeHandler;
+            _isFacingRight = true;
 
         }
         public void MoveRight(float direction)
@@ -29,12 +35,19 @@ namespace _Main.Scripts.Character
         {
             _movement.DoJump();
         }
-        
+
+        public void DoShootBubble()
+        {
+            _bubbleShooter.TryShoot(_isFacingRight);
+        }
+
         private void Movement_OnFacingChangeHandler(bool isFacingRight)
         {
+            _isFacingRight = isFacingRight;
+            
             if (spriteRenderer != null)
             {
-                spriteRenderer.flipX = !isFacingRight;
+                spriteRenderer.flipX = !_isFacingRight;
             }
         }
 
