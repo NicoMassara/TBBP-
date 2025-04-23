@@ -34,7 +34,6 @@ namespace _Main.Scripts.Bubble
         private Vector2 _originPosition;
         private bool _hasChangedDirection = false;
         private float _distanceNeededToChangeDirection;
-        private float _errantMovement;
         private float _errantAngle;
         
         public UnityAction OnDirectionChange;
@@ -77,9 +76,11 @@ namespace _Main.Scripts.Bubble
             {
                 _errantAngle -= Mathf.PI * 2f; 
             }
-                
-            float min = -_errantMovement;
-            float max = _errantMovement;
+            
+            var variation  = Random.Range(-errantMovementVariation, errantMovementVariation);
+            
+            float min = (-maxErrantMovement + variation) / 2000;
+            float max = (maxErrantMovement + variation) / 2000;
             float midpoint = (min + max) / 2f;
             float amplitude = (max - min) / 2f;
             float oscillatingValue = midpoint + Mathf.Sin(_errantAngle) * amplitude;
@@ -101,16 +102,9 @@ namespace _Main.Scripts.Bubble
                 BubbleMovementTypeEnum.Right : BubbleMovementTypeEnum.Left);
             _originPosition = transform.position;
             _hasChangedDirection = false;
+            _errantAngle = 0;
             _distanceNeededToChangeDirection = distanceToChangeDirection + 
                                                Random.Range(-distanceNeededVariation, distanceNeededVariation);
-            
-            // Set errant movement value
-            
-            var variation  = Random.Range(-errantMovementVariation, errantMovementVariation)/2;
-
-            _errantMovement = (maxErrantMovement + variation) / 2000;
-
-            _errantAngle = 0;
         }
 
         public void EndMovement()
